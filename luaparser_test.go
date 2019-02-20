@@ -21,9 +21,9 @@ func (suite *LuaParserTestSuite) TearDownSuite() {
 
 func (suite *LuaParserTestSuite) Test_0_Unmarshall() {
 	type TestType struct {
-		A string   `json:"a"`
-		B int      `json:"b"`
-		C []string `json:"c"`
+		A string
+		B int
+		C []string
 	}
 
 	globalVar := "myglobalvar"
@@ -44,8 +44,8 @@ local c = {"a", "b", "c", "d"}
 	err := parser.Unmarhsall(in, &out)
 	suite.Nil(err)
 	suite.Equal("x", out.A)
-	suite.Equal("23", out.B)
-	suite.Equal("23", out.C)
+	suite.Equal(23, out.B)
+	suite.Equal([]string{"a", "b", "c", "d"}, out.C)
 }
 
 func TestLuaParserTestSuite(t *testing.T) {

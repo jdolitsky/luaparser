@@ -2,6 +2,7 @@ package luaparser
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/Azure/golua/lua"
@@ -32,10 +33,31 @@ func (p *LuaParser) Unmarhsall(in []byte, out interface{}) error {
 	}
 
 	state.GetGlobal(p.GlobalVar)
-	value := state.Pop()
+	table := state.Pop().(lua.Table)
+
+	m := map[string]interface{}{}
+	table.ForEach(parseTableFunc(m))
 
 	// TODO: figure out how to unmarshall value into out
-	fmt.Println(lua.IsNumber(value))
+	fmt.Println(m)
 
-	return nil
+	data, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, out)
+}
+
+func parseTableFunc(m map[string]interface{}) func(key lua.Value, value lua.Value) {
+	return func(k lua.Value, v lua.Value) {
+		ks := k.String()
+		if v.Type() == lua.TableType {
+			tmp := map[string]interface{}{}
+			v.(lua.Table).ForEach(parseTableFunc(tmp))
+			m[ks] = &tmp
+		} else {
+			m[ks] = v
+		}
+	}
 }
